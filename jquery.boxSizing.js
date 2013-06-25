@@ -1,5 +1,6 @@
 /**
  * jQuery.boxSizing
+ * http://github.com/stephenr85/jquery-box-sizing
  * @author Stephen Rushing, eSiteful
 **/
 (function($, undefined){
@@ -9,7 +10,12 @@
 	$.fn.boxSizing = function(){
 		
 		var I = this,
-			deferred = $.Deferred();		
+			deferred = $.Deferred();	
+			
+		if($.support.boxSizing){
+			deferred.resolveWith(I);
+			return deferred;	
+		}
 		
 		var size = function(el){
 			var $el = $(el),
