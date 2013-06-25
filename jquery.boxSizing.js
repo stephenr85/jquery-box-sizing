@@ -1,13 +1,46 @@
-/**
- * jQuery.boxSizing
- * http://github.com/stephenr85/jquery-box-sizing
- * @author Stephen Rushing, eSiteful
-**/
+
 (function($, undefined){
+	var testStyle = document.createElement('div').style;
+	$.support.boxSizing = (('boxSizing' in testStyle) || ('MozBoxSizing' in testStyle)) && (document.documentMode === undefined || document.documentMode > 7);	
+
+	/**
+	 * jQuery.emPx - Get the px value of an em unit in a certain context. Only relevant for IE, or browsers without getComputedStyle().
+	 * http://github.com/stephenr85/jquery-box-sizing
+	 * @author Stephen Rushing, eSiteful
+	**/
+	$.fn.emPx = function(){
+		var $scope = $(this).first(),
+			unit, px, size, adjust;
+		while($scope.length){
+			size = $scope.css('font-size') || '';
+			unit = size.match(/px|em|%/)[0];
+			size = size.replace(/px|em|%/, '') * 1;
+			
+			if(unit === '%'){
+				adjust = adjust * (size / 100);	
+			}else if(unit === 'em'){
+				adjust = adjust * size;
+			}else if(unit === 'px'){
+				break;	
+			}
+			//check the parent
+			$scope = $scope.parent();	
+		}
+		console.log(px + " " + (adjust) +" "+ (px * adjust));
+		px = px * adjust;
+		
+		return px;
+	};
 	
-	$.support.boxSizing = ('boxSizing' in document.createElement('div').style) && (document.documentMode === undefined || document.documentMode > 7);	
 	
+	/**
+	 * jQuery.boxSizing
+	 * http://github.com/stephenr85/jquery-box-sizing
+	 * @author Stephen Rushing, eSiteful
+	**/
 	$.fn.boxSizing = function(){
+		
+		if($.support.boxSizing) return; //bail
 		
 		var I = this,
 			deferred = $.Deferred();	
@@ -24,12 +57,11 @@
 				origStyles = {};
 				
 			$.each(['width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight'], function(i, property){
-				var val = $el.get(0).currentStyle[property] || '',
-					fontSize = Number(($el.get(0).currentStyle['fontSize'] || '').replace('px'));				
+				var val = $el.get(0).currentStyle[property] || '';	
 				if(val && /px/.test(val)){
 					val = Number(val.replace('px', ''));	
 				}else if(val && /em/.test(val)){
-					val = val.replace('em', '') * fontSize;
+					val = val.replace('em', '') * $el.emPx();
 				}else if(val && /%/.test(val)){
 					val = $el.parent()[/width/i.test(property) ? 'width' : 'height']() * (val.replace('%','') / 100);	
 				}
